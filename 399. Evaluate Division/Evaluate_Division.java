@@ -1,5 +1,61 @@
 class Evaluate_Division {
     public double[] calcEquation(List<List<String>> equations, double[] values, List<List<String>> queries) {
+        Map<String, Pair<String, Double>> dsu = new HashMap<>();
+        for(int i=0; i< equations.size(); i++){
+            String dvd = equations.get(i).get(0);
+            String dvr = equations.get(i).get(1);
+            Double val = values[i];
+            union(dsu, dvd, dvr, val);
+        }
+
+        double[] res = new double[queries.size()];
+        for(int i=0; i<queries.size(); i++){
+            List<String> qur = queries.get(i);
+            String dvd = qur.get(0), dvr = qur.get(1);
+            if(!dsu.containsKey(dvd) || !dsu.containsKey(dvr))
+                res[i] = -1.0;
+            else{
+                Pair<String, Double> dvdPr = find(dsu, dvd);
+                Pair<String, Double> dvrPr = find(dsu, dvr);
+                if(dvdPr.getKey() != dvrPr.getKey())
+                    res[i] = -1.0;
+                else
+                    res[i] = dvdPr.getValue()/dvrPr.getValue();
+
+            }
+        }
+        return res;
+
+    }
+    private Pair<String, Double> find(Map<String, Pair<String, Double>> dsu, String node){
+        dsu.putIfAbsent(node, new Pair<>(node, 1.0));
+        Pair<String, Double> curr = dsu.get(node);
+        if(curr.getKey() != node){
+            Pair<String, Double> par = find(dsu, curr.getKey());
+            dsu.put(node, new Pair<>(par.getKey(), curr.getValue() * par.getValue()));
+        }
+        return dsu.get(node);
+    }
+
+    private void union(Map<String, Pair<String, Double>> dsu, String dvd, String dvr, Double val){
+        Pair<String,Double> dvdPair = find(dsu, dvd);
+        Pair<String,Double> dvrPair = find(dsu, dvr);
+        String dvdGid = dvdPair.getKey();
+        String dvrGid = dvrPair.getKey();
+        Double dvrValue = dvrPair.getValue();
+        Double dvdValue = dvdPair.getValue();
+        if(dvdGid != dvrGid){
+            dsu.put(dvdGid, new Pair<>(dvrGid, dvrValue * val / dvdValue));
+        }
+
+    }
+
+
+
+
+
+
+    public double[] calcEquation2(List<List<String>> equations, double[] values, List<List<String>> queries) {
         Map<String, Map<String, Double>> graph = new HashMap<>();
         for(int i=0; i<equations.size(); i++ ){
             List<String> eq = equations.get(i);
